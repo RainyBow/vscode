@@ -114,28 +114,18 @@ export class ChatSetupController extends Disposable {
 		try {
 			let entitlement: ChatEntitlement | undefined;
 
-			let signIn: boolean;
-			if (options.forceSignIn) {
-				signIn = true; // forced to sign in
-			} else if (this.context.state.entitlement === ChatEntitlement.Unknown) {
-				if (options.forceAnonymous) {
-					signIn = false; // forced to anonymous without sign in
-				} else {
-					signIn = true; // sign in since we are signed out
-				}
-			} else {
-				signIn = false; // already signed in
-			}
+			// 移除登录限制，默认使用匿名模式
+			let signIn: boolean = false;
 
 			if (signIn) {
 				this.setStep(ChatSetupStep.SigningIn);
 				const result = await this.signIn(options);
 				if (!result.defaultAccount) {
-					this.doInstall(); // still install the extension in the background to remind the user to sign-in eventually
+					this.doInstall(); // still install the extension in the background
 
 					const provider = options.useSocialProvider ?? (options.useEnterpriseProvider ? defaultChat.provider.enterprise.id : defaultChat.provider.default.id);
 					this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'failedNotSignedIn', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
-					return undefined; // treat as cancelled because signing in already triggers an error dialog
+					// 即使登录失败，也继续安装
 				}
 
 				entitlement = result.entitlement;
@@ -143,7 +133,7 @@ export class ChatSetupController extends Disposable {
 
 			// Await Install
 			this.setStep(ChatSetupStep.Installing);
-			success = await this.install(entitlement ?? this.context.state.entitlement, watch, options);
+			success = await this.install(entitlement ?? this.context.state.entitlement, watch, { ...options, forceAnonymous: ChatSetupAnonymous.EnabledWithoutDialog });
 		} finally {
 			this.setStep(ChatSetupStep.Initial);
 			this.context.resume();
@@ -187,31 +177,11 @@ export class ChatSetupController extends Disposable {
 		let signUpResult: boolean | { errorCode: number } | undefined = undefined;
 
 		let provider: string;
-		if (options.forceAnonymous && entitlement === ChatEntitlement.Unknown) {
-			provider = 'anonymous';
-		} else {
-			provider = options.useSocialProvider ?? (options.useEnterpriseProvider ? defaultChat.provider.enterprise.id : defaultChat.provider.default.id);
-		}
+		// 优先使用匿名模式
+		provider = 'anonymous';
 
 		try {
-			if (
-				!options.forceAnonymous &&						// User is not asking for anonymous access
-				entitlement !== ChatEntitlement.Free &&			// User is not signed up to Copilot Free
-				!isProUser(entitlement) &&						// User is not signed up for a Copilot subscription
-				entitlement !== ChatEntitlement.Unavailable		// User is eligible for Copilot Free
-			) {
-				signUpResult = await this.requests.signUpFree();
-
-				if (isUndefined(signUpResult)) {
-					this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'failedNoSession', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
-					return false; // unexpected
-				}
-
-				if (typeof signUpResult !== 'boolean' /* error */) {
-					this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'failedSignUp', installDuration: watch.elapsed(), signUpErrorCode: signUpResult.errorCode, provider });
-				}
-			}
-
+			// 跳过登录和注册流程，直接安装
 			await this.doInstallWithRetry();
 		} catch (error) {
 			this.logService.error(`[chat setup] install: error ${error}`);
@@ -219,15 +189,10 @@ export class ChatSetupController extends Disposable {
 			return false;
 		}
 
-		if (typeof signUpResult === 'boolean' /* not an error case */ || typeof signUpResult === 'undefined' /* already signed up */) {
-			this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: wasRunning && !signUpResult ? 'alreadyInstalled' : 'installed', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
-		}
+		this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: wasRunning ? 'alreadyInstalled' : 'installed', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
 
 		if (wasRunning) {
-			// We always trigger refresh of tokens to help the user
-			// get out of authentication issues that can happen when
-			// for example the sign-up ran after the extension tried
-			// to use the authentication information to mint a token
+			// 刷新令牌以确保功能正常
 			refreshTokens(this.commandService);
 		}
 
