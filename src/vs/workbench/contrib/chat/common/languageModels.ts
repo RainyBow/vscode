@@ -629,32 +629,9 @@ export class LanguageModelsService implements ILanguageModelsService {
 		const openAIVendor: IUserFriendlyLanguageModel = {
 			vendor: 'openai-compatible',
 			displayName: 'OpenAI Compatible',
-			configuration: {
-				properties: {
-					apiBaseUrl: {
-						type: 'string',
-						title: 'API Base URL',
-						description: 'The base URL for the OpenAI compatible API',
-						default: 'http://localhost:8000/v1'
-					},
-					apiKey: {
-						type: 'string',
-						title: 'API Key',
-						description: 'The API key for the OpenAI compatible API',
-						default: 'empty',
-						secret: true
-					},
-					models: {
-						type: 'array',
-						items: {
-							type: 'string'
-						},
-						title: 'Models',
-						description: 'List of available models',
-						default: ['gpt-3.5-turbo', 'gpt-4']
-					}
-				}
-			}
+			configuration: undefined,
+			managementCommand: undefined,
+			when: undefined
 		};
 		this.deltaLanguageModelChatProviderDescriptors([openAIVendor], []);
 		this.registerLanguageModelProvider('openai-compatible', openAIProvider);

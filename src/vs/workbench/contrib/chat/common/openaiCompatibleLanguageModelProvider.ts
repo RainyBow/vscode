@@ -3,14 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from '../../../base/common/cancellation.js';
-import { Event, Emitter } from '../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
-import { IStringDictionary } from '../../../base/common/collections.js';
-import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
-import { IChatMessage, ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier, ILanguageModelChatProvider, ILanguageModelChatRequestOptions, ILanguageModelChatResponse, ILanguageModelChatInfoOptions } from './languageModels.js';
-import { IRequestService } from '../../../platform/request/common/request.js';
-import { ILogService } from '../../../platform/log/common/log.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
+import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
+import { IChatMessage, ILanguageModelChatMetadataAndIdentifier, ILanguageModelChatProvider, ILanguageModelChatRequestOptions, ILanguageModelChatResponse, ILanguageModelChatInfoOptions } from './languageModels.js';
+import { IRequestService } from '../../../../platform/request/common/request.js';
+import { ILogService } from '../../../../platform/log/common/log.js';
 
 /**
  * OPENAI兼容的语言模型提供商
@@ -27,11 +25,10 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 	) {
 	}
 
-	async provideLanguageModelChatInfo(options: ILanguageModelChatInfoOptions, token: CancellationToken): Promise<ILanguageModelChatMetadataAndIdentifier[]> {
+	async provideLanguageModelChatInfo(options: ILanguageModelChatInfoOptions): Promise<ILanguageModelChatMetadataAndIdentifier[]> {
 		// 从配置中获取模型信息
 		const configuration = options.configuration || {};
 		const apiBaseUrl = configuration.apiBaseUrl as string || 'http://localhost:8000/v1';
-		const apiKey = configuration.apiKey as string || 'empty';
 		const models = configuration.models as string[] || ['gpt-3.5-turbo', 'gpt-4'];
 
 		// 构建模型元数据
@@ -51,44 +48,18 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 					maxOutputTokens: 1024,
 					isDefaultForLocation: {},
 					isUserSelectable: true,
+					modelPickerCategory: undefined,
 					capabilities: {
 						vision: false,
 						toolCalling: true,
 						agentMode: true
-					},
-					configurationSchema: {
-						type: 'object',
-						properties: {
-							apiBaseUrl: {
-								type: 'string',
-								title: 'API Base URL',
-								description: 'The base URL for the OpenAI compatible API',
-								default: 'http://localhost:8000/v1'
-							},
-							apiKey: {
-								type: 'string',
-								title: 'API Key',
-								description: 'The API key for the OpenAI compatible API',
-								default: 'empty',
-								secret: true
-							},
-							models: {
-								type: 'array',
-								items: {
-									type: 'string'
-								},
-								title: 'Models',
-								description: 'List of available models',
-								default: ['gpt-3.5-turbo', 'gpt-4']
-							}
-						}
 					}
 				}
 			};
 		});
 	}
 
-	async sendChatRequest(modelId: string, messages: IChatMessage[], from: ExtensionIdentifier | undefined, options: ILanguageModelChatRequestOptions, token: CancellationToken): Promise<ILanguageModelChatResponse> {
+	async sendChatRequest(modelId: string, messages: IChatMessage[], _from: ExtensionIdentifier | undefined, options: ILanguageModelChatRequestOptions, token: CancellationToken): Promise<ILanguageModelChatResponse> {
 		// 从模型ID中提取模型名称
 		const modelName = modelId.replace('openai-compatible-', '');
 
@@ -121,10 +92,10 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${apiKey}`
 			},
-			data: requestData,
+			data: JSON.stringify(requestData),
 			followRedirects: 5,
-			token
-		});
+			callSite: 'OpenAICompatibleLanguageModelProvider.sendChatRequest'
+		}, token);
 
 		// 处理流式响应
 		const stream = this._processStream(response);
@@ -183,7 +154,7 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 		}
 	}
 
-	async provideTokenCount(modelId: string, message: string | IChatMessage, token: CancellationToken): Promise<number> {
+	async provideTokenCount(_modelId: string, message: string | IChatMessage): Promise<number> {
 		// 简单的token计数实现
 		if (typeof message === 'string') {
 			return message.length / 4; // 粗略估计

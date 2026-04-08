@@ -9,7 +9,7 @@ import { Emitter } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import Severity from '../../../../../base/common/severity.js';
 import { StopWatch } from '../../../../../base/common/stopwatch.js';
-import { isObject, isUndefined } from '../../../../../base/common/types.js';
+import { isObject } from '../../../../../base/common/types.js';
 import { localize } from '../../../../../nls.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
@@ -25,7 +25,7 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { IActivityService, ProgressBadge } from '../../../../services/activity/common/activity.js';
 import { ILifecycleService } from '../../../../services/lifecycle/common/lifecycle.js';
 import { IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
-import { ChatEntitlement, ChatEntitlementContext, ChatEntitlementRequests, isProUser } from '../../../../services/chat/common/chatEntitlementService.js';
+import { ChatEntitlement, ChatEntitlementContext, ChatEntitlementRequests } from '../../../../services/chat/common/chatEntitlementService.js';
 import { CHAT_OPEN_ACTION_ID } from '../actions/chatActions.js';
 import { ChatViewId, ChatViewContainerId } from '../chat.js';
 import { ChatSetupAnonymous, ChatSetupStep, ChatSetupResultValue, InstallChatEvent, InstallChatClassification, refreshTokens, maybeEnableAuthExtension } from './chatSetup.js';
@@ -174,7 +174,6 @@ export class ChatSetupController extends Disposable {
 
 	private async install(entitlement: ChatEntitlement, watch: StopWatch, options: IChatSetupControllerOptions): Promise<ChatSetupResultValue> {
 		const wasRunning = this.context.state.completed && !this.context.state.disabled;
-		let signUpResult: boolean | { errorCode: number } | undefined = undefined;
 
 		let provider: string;
 		// 优先使用匿名模式
