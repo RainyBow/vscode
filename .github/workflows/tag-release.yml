@@ -28,9 +28,11 @@ jobs:
           lfs: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          # Use a stable npm version
+          npm-version: '10.8.1'
 
       - name: Prepare node_modules cache key
         run: mkdir -p .build && node build/azure-pipelines/common/computeNodeModulesCacheKey.ts compile $(node -p process.arch) > .build/packagelockhash
@@ -54,21 +56,16 @@ jobs:
           npm config set fetch-retry-maxtimeout 120000
           npm config set prefer-offline false
 
-          for ($i=1; $i -le 5; $i++) { # try 5 times
-            # Try npm install first to generate package-lock.json if it doesn't exist
-            npm install --prefer-offline --no-audit --no-fund --ignore-scripts
-            if ($LASTEXITCODE -eq 0) {
-              # Then run npm ci for a clean install
-              npm ci --prefer-offline --no-audit --no-fund
-              if ($LASTEXITCODE -eq 0) { break }
-            }
-            if ($i -eq 5) {
-              Write-Host "Npm install failed too many times" -ForegroundColor Red
-              exit 1
-            }
-            Write-Host "Npm install failed $i, trying again..."
-            Start-Sleep -Seconds 10
+          # Clean up any existing node_modules and package-lock.json
+          if (Test-Path "node_modules") {
+            Remove-Item -Path "node_modules" -Recurse -Force
           }
+          if (Test-Path "package-lock.json") {
+            Remove-Item -Path "package-lock.json" -Force
+          }
+
+          # Use a single npm install command with proper flags
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
@@ -106,9 +103,11 @@ jobs:
           lfs: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          # Use a stable npm version
+          npm-version: '10.8.1'
 
       - name: Run Windows Electron Tests
         run: npm run test-electron
@@ -127,9 +126,11 @@ jobs:
           lfs: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          # Use a stable npm version
+          npm-version: '10.8.1'
 
       - name: Run Windows Browser Tests
         run: npm run test-browser
@@ -148,9 +149,11 @@ jobs:
           lfs: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          # Use a stable npm version
+          npm-version: '10.8.1'
 
       - name: Run Windows Remote Tests
         run: npm run test-remote
@@ -169,9 +172,11 @@ jobs:
           lfs: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          # Use a stable npm version
+          npm-version: '10.8.1'
 
       - name: Prepare node_modules cache key
         run: mkdir -p .build && node build/azure-pipelines/common/computeNodeModulesCacheKey.ts compile $(node -p process.arch) > .build/packagelockhash
@@ -195,21 +200,16 @@ jobs:
           npm config set fetch-retry-maxtimeout 120000
           npm config set prefer-offline false
 
-          for ($i=1; $i -le 5; $i++) { # try 5 times
-            # Try npm install first to generate package-lock.json if it doesn't exist
-            npm install --prefer-offline --no-audit --no-fund --ignore-scripts
-            if ($LASTEXITCODE -eq 0) {
-              # Then run npm ci for a clean install
-              npm ci --prefer-offline --no-audit --no-fund
-              if ($LASTEXITCODE -eq 0) { break }
-            }
-            if ($i -eq 5) {
-              Write-Host "Npm install failed too many times" -ForegroundColor Red
-              exit 1
-            }
-            Write-Host "Npm install failed $i, trying again..."
-            Start-Sleep -Seconds 10
+          # Clean up any existing node_modules and package-lock.json
+          if (Test-Path "node_modules") {
+            Remove-Item -Path "node_modules" -Recurse -Force
           }
+          if (Test-Path "package-lock.json") {
+            Remove-Item -Path "package-lock.json" -Force
+          }
+
+          # Use a single npm install command with proper flags
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
