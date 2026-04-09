@@ -106,6 +106,7 @@ jobs:
         run: npm exec -- npm-run-all2 -lp core-ci hygiene eslint valid-layers-check define-class-fields-check vscode-dts-compile-check tsec-compile-check test-build-scripts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MOCHA_TIMEOUT: 10000
 
       - name: Check cyclic dependencies
         run: node build/lib/checkCyclicDependencies.ts out-build
