@@ -259,22 +259,27 @@ gulp.task(task.define('core-ci-old', task.series(
 	)
 )));
 
-gulp.task(task.define('core-ci', task.series(
-	copyCodiconsTask,
-	compileNonNativeExtensionsBuildTask,
-	compileExtensionMediaBuildTask,
-	writeISODate('out-build'),
-	// Type-check with tsgo (no emit)
-	task.define('tsgo-typecheck', () => runTsGoTypeCheck()),
-	// Transpile individual files to out-build first (for unit tests)
-	task.define('esbuild-out-build', () => runEsbuildTranspile('out-build', false)),
-	// Then bundle for shipping (bundles also write NLS files to out-build)
-	task.parallel(
-		task.define('esbuild-vscode-min', () => runEsbuildBundle('out-vscode-min', true, true, 'desktop', `${sourceMappingURLBase}/core`)),
-		task.define('esbuild-vscode-reh-min', () => runEsbuildBundle('out-vscode-reh-min', true, true, 'server', `${sourceMappingURLBase}/core`)),
-		task.define('esbuild-vscode-reh-web-min', () => runEsbuildBundle('out-vscode-reh-web-min', true, true, 'server-web', `${sourceMappingURLBase}/core`)),
-	)
-)));
+// core-ci task
+gulp.task('core-ci', async (done) => {
+	try {
+		// Execute tasks sequentially
+		await copyCodiconsTask();
+		// Skip compileNonNativeExtensionsBuildTask to avoid GitHub API rate limiting
+		// await compileNonNativeExtensionsBuildTask();
+		await compileExtensionMediaBuildTask();
+		await writeISODate('out-build')();
+		await runTsGoTypeCheck();
+		await runEsbuildTranspile('out-build', false);
+		// Execute esbuild bundle tasks sequentially to reduce memory usage
+		await runEsbuildBundle('out-vscode-min', true, true, 'desktop', `${sourceMappingURLBase}/core`);
+		await runEsbuildBundle('out-vscode-reh-min', true, true, 'server', `${sourceMappingURLBase}/core`);
+		await runEsbuildBundle('out-vscode-reh-web-min', true, true, 'server-web', `${sourceMappingURLBase}/core`);
+		done();
+	} catch (err) {
+		console.error('Error in core-ci task:', err);
+		done(err);
+	}
+});
 
 const coreCIPR = task.define('core-ci-pr', task.series(
 	gulp.task('compile-build-without-mangling') as task.Task,

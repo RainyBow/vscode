@@ -245,7 +245,9 @@ gulp.task(compileExtensionMediaTask);
 export const watchExtensionMedia = task.define('watch-extension-media', () => ext.buildExtensionMedia(true));
 gulp.task(watchExtensionMedia);
 
-export const compileExtensionMediaBuildTask = task.define('compile-extension-media-build', () => ext.buildExtensionMedia(false, '.build/extensions'));
+export const compileExtensionMediaBuildTask = task.define('compile-extension-media-build', async () => {
+	await ext.buildExtensionMedia(false, '.build/extensions');
+});
 gulp.task(compileExtensionMediaBuildTask);
 
 //#endregion
@@ -266,17 +268,27 @@ const bundleMarketplaceExtensionsBuildTask = task.define('bundle-marketplace-ext
  * Compiles the non-native extensions for the build
  * @note this does not clean the directory ahead of it. See {@link cleanExtensionsBuildTask} for that.
  */
-export const compileNonNativeExtensionsBuildTask = task.define('compile-non-native-extensions-build', task.series(
-	bundleMarketplaceExtensionsBuildTask,
-	task.define('bundle-non-native-extensions-build', () => ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build')))
-));
+export const compileNonNativeExtensionsBuildTask = task.define('compile-non-native-extensions-build', async () => {
+	// Bundle marketplace extensions
+	await new Promise((resolve, reject) => {
+		const stream = ext.packageMarketplaceExtensionsStream(false).pipe(gulp.dest('.build'));
+		stream.on('end', resolve);
+		stream.on('error', reject);
+	});
+	// Bundle non-native local extensions
+	await new Promise((resolve, reject) => {
+		const stream = ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build'));
+		stream.on('end', resolve);
+		stream.on('error', reject);
+	});
+});
 gulp.task(compileNonNativeExtensionsBuildTask);
 
 /**
  * Compiles the native extensions for the build
  * @note this does not clean the directory ahead of it. See {@link cleanExtensionsBuildTask} for that.
  */
-export const compileNativeExtensionsBuildTask = task.define('compile-native-extensions-build', () => ext.packageNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build')));
+export const compileNativeExtensionsBuildTask = task.define('compile-native-extensions-build', () => util.streamToPromise(ext.packageNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build'))));
 gulp.task(compileNativeExtensionsBuildTask);
 
 /**
@@ -286,7 +298,7 @@ gulp.task(compileNativeExtensionsBuildTask);
 export const compileAllExtensionsBuildTask = task.define('compile-extensions-build', task.series(
 	cleanExtensionsBuildTask,
 	bundleMarketplaceExtensionsBuildTask,
-	task.define('bundle-extensions-build', () => ext.packageAllLocalExtensionsStream(false, false).pipe(gulp.dest('.build'))),
+	task.define('bundle-extensions-build', () => util.streamToPromise(ext.packageAllLocalExtensionsStream(false, false).pipe(gulp.dest('.build')))),
 ));
 gulp.task(compileAllExtensionsBuildTask);
 
