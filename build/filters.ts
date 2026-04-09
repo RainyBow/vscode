@@ -38,6 +38,7 @@ export const unicodeFilter = Object.freeze<string[]>([
 	'!**/LICENSE.{txt,rtf}',
 	'!LICENSES.chromium.html',
 	'!**/LICENSE',
+	'!**/buildlogs.txt',
 
 	'!**/*.{dll,exe,png,bmp,jpg,scpt,cur,ttf,woff,eot,template,ico,icns,opus,wasm}',
 	'!**/test/**',

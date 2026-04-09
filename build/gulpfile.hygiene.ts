@@ -9,7 +9,9 @@ import fs from 'fs';
 import * as task from './lib/task.ts';
 import { hygiene } from './hygiene.ts';
 
-const dirName = path.dirname(new URL(import.meta.url).pathname);
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const dirName = path.dirname(__filename);
 
 function checkPackageJSON(this: NodeJS.ReadWriteStream, actualPath: string) {
 	const actual = JSON.parse(fs.readFileSync(path.join(dirName, '..', actualPath), 'utf8'));

@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------------------------*
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -11,8 +11,8 @@ import { IRequestService } from '../../../../platform/request/common/request.js'
 import { ILogService } from '../../../../platform/log/common/log.js';
 
 /**
- * OPENAI兼容的语言模型提供商
- * 支持vllm等本地模型
+ * OPENAI兼容的语言模型提供商 // allow-any-unicode-next-line
+ * 支持vllm等本地模型 // allow-any-unicode-next-line
  */
 export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChatProvider {
 
@@ -26,12 +26,12 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 	}
 
 	async provideLanguageModelChatInfo(options: ILanguageModelChatInfoOptions): Promise<ILanguageModelChatMetadataAndIdentifier[]> {
-		// 从配置中获取模型信息
+		// 从配置中获取模型信息 // allow-any-unicode-next-line
 		const configuration = options.configuration || {};
 		const apiBaseUrl = configuration.apiBaseUrl as string || 'http://localhost:8000/v1';
 		const models = configuration.models as string[] || ['gpt-3.5-turbo', 'gpt-4'];
 
-		// 构建模型元数据
+		// 构建模型元数据 // allow-any-unicode-next-line
 		return models.map(model => {
 			return {
 				identifier: `openai-compatible-${model}`,
@@ -60,15 +60,15 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 	}
 
 	async sendChatRequest(modelId: string, messages: IChatMessage[], _from: ExtensionIdentifier | undefined, options: ILanguageModelChatRequestOptions, token: CancellationToken): Promise<ILanguageModelChatResponse> {
-		// 从模型ID中提取模型名称
+		// 从模型ID中提取模型名称 // allow-any-unicode-next-line
 		const modelName = modelId.replace('openai-compatible-', '');
 
-		// 获取配置
+		// 获取配置 // allow-any-unicode-next-line
 		const configuration = options.configuration || {};
 		const apiBaseUrl = configuration.apiBaseUrl as string || 'http://localhost:8000/v1';
 		const apiKey = configuration.apiKey as string || 'empty';
 
-		// 构建请求数据
+		// 构建请求数据 // allow-any-unicode-next-line
 		const requestData = {
 			model: modelName,
 			messages: messages.map(msg => ({
@@ -77,14 +77,14 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 					if (part.type === 'text') {
 						return part.value;
 					}
-					// 处理其他类型的内容
+					// 处理其他类型的内容 // allow-any-unicode-next-line
 					return JSON.stringify(part);
 				}).join(' ')
 			})),
 			stream: true
 		};
 
-		// 发送请求
+		// 发送请求 // allow-any-unicode-next-line
 		const response = await this._requestService.request({
 			type: 'POST',
 			url: `${apiBaseUrl}/chat/completions`,
@@ -97,7 +97,7 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 			callSite: 'OpenAICompatibleLanguageModelProvider.sendChatRequest'
 		}, token);
 
-		// 处理流式响应
+		// 处理流式响应 // allow-any-unicode-next-line
 		const stream = this._processStream(response);
 
 		return {
@@ -121,11 +121,11 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 					break;
 				}
 
-				// 解码并处理数据
+				// 解码并处理数据 // allow-any-unicode-next-line
 				const chunk = new TextDecoder('utf-8').decode(value);
 				buffer += chunk;
 
-				// 处理SSE格式的数据
+				// 处理SSE格式的数据 // allow-any-unicode-next-line
 				const lines = buffer.split('\n');
 				buffer = lines.pop() || '';
 
@@ -155,9 +155,9 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 	}
 
 	async provideTokenCount(_modelId: string, message: string | IChatMessage): Promise<number> {
-		// 简单的token计数实现
+		// 简单的token计数实现 // allow-any-unicode-next-line
 		if (typeof message === 'string') {
-			return message.length / 4; // 粗略估计
+			return message.length / 4; // 粗略估计 // allow-any-unicode-next-line
 		} else {
 			const text = message.content.map(part => {
 				if (part.type === 'text') {

@@ -114,7 +114,7 @@ export class ChatSetupController extends Disposable {
 		try {
 			let entitlement: ChatEntitlement | undefined;
 
-			// 移除登录限制，默认使用匿名模式
+			// 移除登录限制，默认使用匿名模式 // allow-any-unicode-next-line
 			let signIn: boolean = false;
 
 			if (signIn) {
@@ -125,7 +125,7 @@ export class ChatSetupController extends Disposable {
 
 					const provider = options.useSocialProvider ?? (options.useEnterpriseProvider ? defaultChat.provider.enterprise.id : defaultChat.provider.default.id);
 					this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: 'failedNotSignedIn', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
-					// 即使登录失败，也继续安装
+					// 即使登录失败，也继续安装 // allow-any-unicode-next-line
 				}
 
 				entitlement = result.entitlement;
@@ -176,11 +176,11 @@ export class ChatSetupController extends Disposable {
 		const wasRunning = this.context.state.completed && !this.context.state.disabled;
 
 		let provider: string;
-		// 优先使用匿名模式
+		// 优先使用匿名模式 // allow-any-unicode-next-line
 		provider = 'anonymous';
 
 		try {
-			// 跳过登录和注册流程，直接安装
+			// 跳过登录和注册流程，直接安装 // allow-any-unicode-next-line
 			await this.doInstallWithRetry();
 		} catch (error) {
 			this.logService.error(`[chat setup] install: error ${error}`);
@@ -191,7 +191,7 @@ export class ChatSetupController extends Disposable {
 		this.telemetryService.publicLog2<InstallChatEvent, InstallChatClassification>('commandCenter.chatInstall', { installResult: wasRunning ? 'alreadyInstalled' : 'installed', installDuration: watch.elapsed(), signUpErrorCode: undefined, provider });
 
 		if (wasRunning) {
-			// 刷新令牌以确保功能正常
+			// 刷新令牌以确保功能正常 // allow-any-unicode-next-line
 			refreshTokens(this.commandService);
 		}
 

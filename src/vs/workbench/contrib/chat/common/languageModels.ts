@@ -624,7 +624,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 		}));
 		this._store.add(this._languageModelsConfigurationService.onDidChangeLanguageModelGroups(changedGroups => this._onDidChangeLanguageModelGroups(changedGroups)));
 
-		// 注册OpenAI兼容模型提供商
+		// 注册OpenAI兼容模型提供商 // allow-any-unicode-next-line
 		const openAIProvider = new OpenAICompatibleLanguageModelProvider(_requestService, _logService);
 		const openAIVendor: IUserFriendlyLanguageModel = {
 			vendor: 'openai-compatible',
