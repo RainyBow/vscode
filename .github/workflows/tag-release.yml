@@ -52,18 +52,26 @@ jobs:
         run: |
           set -e
 
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set prefer-offline false
+          npm config set cache-min 0
+
           for i in {1..5}; do # try 5 times
-            npm ci && break
+            npm ci --prefer-offline --no-audit --no-fund && break
             if [ $i -eq 5 ]; then
               echo "Npm install failed too many times" >&2
               exit 1
             fi
             echo "Npm install failed $i, trying again..."
+            sleep 10
           done
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: --max-old-space-size=4096
 
       - name: Create node_modules archive
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -185,19 +193,27 @@ jobs:
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: |
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set prefer-offline false
+          npm config set cache-min 0
+
           for ($i=1; $i -le 5; $i++) { # try 5 times
-            npm ci
+            npm ci --prefer-offline --no-audit --no-fund
             if ($LASTEXITCODE -eq 0) { break }
             if ($i -eq 5) {
               Write-Host "Npm install failed too many times" -ForegroundColor Red
               exit 1
             }
             Write-Host "Npm install failed $i, trying again..."
+            Start-Sleep -Seconds 10
           }
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: --max-old-space-size=4096
 
       - name: Build Windows x86_64
         run: npm run vscode-win32-x64
