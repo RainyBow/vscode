@@ -71,6 +71,20 @@ jobs:
           cd build
           npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
           cd ..
+
+          # Install extension dependencies
+          cd extensions/simple-browser
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ../..
+          cd extensions/mermaid-chat-features
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ../..
+          cd extensions/markdown-math
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ../..
+          cd extensions/markdown-language-features
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ../..
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
