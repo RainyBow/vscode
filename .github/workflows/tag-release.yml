@@ -66,6 +66,11 @@ jobs:
 
           # Use a single npm install command with proper flags
           npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+
+          # Install build directory dependencies
+          cd build
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ..
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
@@ -210,6 +215,11 @@ jobs:
 
           # Use a single npm install command with proper flags
           npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+
+          # Install build directory dependencies
+          cd build
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ..
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
