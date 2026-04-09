@@ -15,7 +15,8 @@
 		"exactOptionalPropertyTypes": false,
 		"useUnknownInCatchVariables": false,
 		"noUnusedLocals": true,
-		"noUnusedParameters": true
+		"noUnusedParameters": true,
+		"types": ["mocha"]
 	},
 	"exclude": [
 		"node_modules/**",
