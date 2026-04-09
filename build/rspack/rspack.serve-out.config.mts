@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 import type { Configuration } from '@rspack/core';
 import { HtmlRspackPlugin, rspack } from '@rspack/core';
-import { ComponentExplorerPlugin } from '@vscode/component-explorer-webpack-plugin';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -56,10 +55,7 @@ export default {
 		],
 	},
 	plugins: [
-		new ComponentExplorerPlugin({
-			include: 'out/**/*.fixture.js',
-		}),
-		new rspack.NormalModuleReplacementPlugin(/\.css$/, resource => {
+		new rspack.NormalModuleReplacementPlugin(/\.css$/, (resource: { context: string; request: string }) => {
 			if (!resource.request.startsWith('.')) {
 				return;
 			}
