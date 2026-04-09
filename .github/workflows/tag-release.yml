@@ -23,11 +23,17 @@ jobs:
     steps:
       - name: Checkout microsoft/vscode
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          lfs: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
+          # Explicitly set npm version to avoid version mismatch issues
+          # Based on the project's requirement of npm < 11.2.0
+          npm-version: '10.8.1'
 
       - name: Prepare node_modules cache key
         run: mkdir -p .build && node build/azure-pipelines/common/computeNodeModulesCacheKey.ts compile $(node -p process.arch) > .build/packagelockhash
@@ -59,7 +65,12 @@ jobs:
           npm config set cache-min 0
 
           for i in {1..5}; do # try 5 times
-            npm ci --prefer-offline --no-audit --no-fund && break
+            # Try npm install first to generate package-lock.json if it doesn't exist
+            npm install --prefer-offline --no-audit --no-fund --ignore-scripts
+            if [ $? -eq 0 ]; then
+              # Then run npm ci for a clean install
+              npm ci --prefer-offline --no-audit --no-fund && break
+            fi
             if [ $i -eq 5 ]; then
               echo "Npm install failed too many times" >&2
               exit 1
@@ -170,11 +181,17 @@ jobs:
     steps:
       - name: Checkout microsoft/vscode
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          lfs: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
+          # Explicitly set npm version to avoid version mismatch issues
+          # Based on the project's requirement of npm < 11.2.0
+          npm-version: '10.8.1'
 
       - name: Prepare node_modules cache key
         run: mkdir -p .build && node build/azure-pipelines/common/computeNodeModulesCacheKey.ts compile $(node -p process.arch) > .build/packagelockhash
@@ -200,8 +217,13 @@ jobs:
           npm config set cache-min 0
 
           for ($i=1; $i -le 5; $i++) { # try 5 times
-            npm ci --prefer-offline --no-audit --no-fund
-            if ($LASTEXITCODE -eq 0) { break }
+            # Try npm install first to generate package-lock.json if it doesn't exist
+            npm install --prefer-offline --no-audit --no-fund --ignore-scripts
+            if ($LASTEXITCODE -eq 0) {
+              # Then run npm ci for a clean install
+              npm ci --prefer-offline --no-audit --no-fund
+              if ($LASTEXITCODE -eq 0) { break }
+            }
             if ($i -eq 5) {
               Write-Host "Npm install failed too many times" -ForegroundColor Red
               exit 1
@@ -233,6 +255,9 @@ jobs:
     steps:
       - name: Checkout microsoft/vscode
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          lfs: false
 
       - name: Download Windows build artifacts
         uses: actions/download-artifact@v4
