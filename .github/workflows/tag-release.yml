@@ -242,7 +242,7 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
 
       - name: Build Windows x86_64
-        run: npm run vscode-win32-x64
+        run: npm run gulp vscode-win32-x64-ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

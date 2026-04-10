@@ -270,17 +270,9 @@ const bundleMarketplaceExtensionsBuildTask = task.define('bundle-marketplace-ext
  */
 export const compileNonNativeExtensionsBuildTask = task.define('compile-non-native-extensions-build', async () => {
 	// Bundle marketplace extensions
-	await new Promise((resolve, reject) => {
-		const stream = ext.packageMarketplaceExtensionsStream(false).pipe(gulp.dest('.build'));
-		stream.on('end', resolve);
-		stream.on('error', reject);
-	});
+	await util.streamToPromise(ext.packageMarketplaceExtensionsStream(false).pipe(gulp.dest('.build')));
 	// Bundle non-native local extensions
-	await new Promise((resolve, reject) => {
-		const stream = ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build'));
-		stream.on('end', resolve);
-		stream.on('error', reject);
-	});
+	await util.streamToPromise(ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build')));
 });
 gulp.task(compileNonNativeExtensionsBuildTask);
 
