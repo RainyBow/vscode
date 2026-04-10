@@ -142,9 +142,9 @@
   "dependencies": {
     "@azure/ms-rest-azure-env": "^2.0.0",
     "@azure/msal-node": "^3.8.3",
-    "@azure/msal-node-extensions": "^1.5.25",
+    "@azure/msal-node-extensions": "^1.5.32",
     "@types/mocha": "^10.0.10",
-    "@vscode/extension-telemetry": "^0.9.8",
+    "@vscode/extension-telemetry": "^0.9.9",
     "keytar": "file:./packageMocks/keytar",
     "vscode-tas-client": "^0.1.84"
   },
