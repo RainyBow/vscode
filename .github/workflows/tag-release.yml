@@ -85,6 +85,12 @@ jobs:
           cd extensions/markdown-language-features
           npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
           cd ../..
+          cd extensions/microsoft-authentication
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ../..
+          cd extensions/git
+          npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
+          cd ../..
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
