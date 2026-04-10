@@ -6,9 +6,11 @@
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
-import { IChatMessage, ILanguageModelChatMetadataAndIdentifier, ILanguageModelChatProvider, ILanguageModelChatRequestOptions, ILanguageModelChatResponse, ILanguageModelChatInfoOptions } from './languageModels.js';
+import { IChatMessage, ILanguageModelChatMetadataAndIdentifier, ILanguageModelChatProvider, ILanguageModelChatRequestOptions, ILanguageModelChatResponse, ILanguageModelChatInfoOptions, IChatResponsePart } from './languageModels.js';
 import { IRequestService } from '../../../../platform/request/common/request.js';
+import type { IRequestContext } from '../../../../base/parts/request/common/request.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { VSBuffer } from '../../../../base/common/buffer.js';
 
 /**
  * OPENAI兼容的语言模型提供商 // allow-any-unicode-next-line
@@ -106,24 +108,56 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 		};
 	}
 
-	private async* _processStream(response: any): AsyncIterable<any> {
-		if (!response.stream) {
-			return;
-		}
-
-		const reader = response.stream.getReader();
+	private async* _processStream(response: IRequestContext): AsyncIterable<IChatResponsePart[]> {
 		let buffer = '';
 
 		try {
-			while (true) {
-				const { done, value } = await reader.read();
-				if (done) {
+			// 监听流的事件 // allow-any-unicode-next-line
+			const stream = response.stream;
+			let isDone = false;
+
+			// 使用 Promise 包装流的读取过程 // allow-any-unicode-next-line
+			const readChunk = (): Promise<VSBuffer | null> => {
+				return new Promise((resolve) => {
+					const onData = (data: VSBuffer) => {
+						stream.removeListener('data', onData);
+						stream.removeListener('end', onEnd);
+						stream.removeListener('error', onError);
+						resolve(data);
+					};
+
+					const onEnd = () => {
+						isDone = true;
+						stream.removeListener('data', onData);
+						stream.removeListener('end', onEnd);
+						stream.removeListener('error', onError);
+						resolve(null);
+					};
+
+					const onError = (error: Error) => {
+						stream.removeListener('data', onData);
+						stream.removeListener('end', onEnd);
+						stream.removeListener('error', onError);
+						this._logService.error(`Error reading stream: ${error}`);
+						resolve(null);
+					};
+
+					stream.on('data', onData);
+					stream.on('end', onEnd);
+					stream.on('error', onError);
+				});
+			};
+
+			// 读取并处理数据 // allow-any-unicode-next-line
+			while (!isDone) {
+				const chunk = await readChunk();
+				if (!chunk) {
 					break;
 				}
 
 				// 解码并处理数据 // allow-any-unicode-next-line
-				const chunk = new TextDecoder('utf-8').decode(value);
-				buffer += chunk;
+				const chunkString = chunk.toString();
+				buffer += chunkString;
 
 				// 处理SSE格式的数据 // allow-any-unicode-next-line
 				const lines = buffer.split('\n');
@@ -149,8 +183,8 @@ export class OpenAICompatibleLanguageModelProvider implements ILanguageModelChat
 					}
 				}
 			}
-		} finally {
-			reader.releaseLock();
+		} catch (e) {
+			this._logService.error(`Error processing OpenAI stream: ${e}`);
 		}
 	}
 

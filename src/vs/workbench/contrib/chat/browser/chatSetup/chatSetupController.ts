@@ -115,7 +115,7 @@ export class ChatSetupController extends Disposable {
 			let entitlement: ChatEntitlement | undefined;
 
 			// 移除登录限制，默认使用匿名模式 // allow-any-unicode-next-line
-			let signIn: boolean = false;
+			const signIn: boolean = false;
 
 			if (signIn) {
 				this.setStep(ChatSetupStep.SigningIn);
@@ -175,9 +175,8 @@ export class ChatSetupController extends Disposable {
 	private async install(entitlement: ChatEntitlement, watch: StopWatch, options: IChatSetupControllerOptions): Promise<ChatSetupResultValue> {
 		const wasRunning = this.context.state.completed && !this.context.state.disabled;
 
-		let provider: string;
 		// 优先使用匿名模式 // allow-any-unicode-next-line
-		provider = 'anonymous';
+		const provider: string = 'anonymous';
 
 		try {
 			// 跳过登录和注册流程，直接安装 // allow-any-unicode-next-line
